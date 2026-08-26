@@ -24,7 +24,7 @@ const BackgroundDecor = () => (
       style={{ background: 'linear-gradient(to top, #FFB300, transparent)' }}
     />
 
-    {/* Decorative dots — truck art motif */}
+    {/* Decorative dots — hostel motif */}
     <div className="absolute top-20 left-8 w-2 h-2 rounded-full bg-truck-red/20" />
     <div className="absolute top-40 left-4 w-1 h-1 rounded-full bg-gold/20" />
     <div className="absolute top-28 right-10 w-2 h-2 rounded-full bg-truck-red/15" />

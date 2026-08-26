@@ -2,13 +2,13 @@
 // Each song: id, title, artist, youtubeId, duration (seconds), category
 
 export const CATEGORIES = [
-  { id: 'all',        label: 'All Songs',              emoji: '🎵' },
-  { id: 'punjabi',    label: 'Hostel Special',           emoji: '' },
-  { id: 'hindi',      label: 'Hindi Songs',             emoji: '🎸' },
-  { id: 'myplaylist', label: 'My Playlist',             emoji: '📝' },
-  { id: 'bollywood90s', label: '90s Bollywood',         emoji: '📼' },
-  { id: 'highway',    label: 'Highway Special',         emoji: '🛣️' },
-  { id: 'favorites',  label: 'Truck Driver Favorites',  emoji: '🚛' },
+  { id: 'all', label: 'All Songs', emoji: '🎵' },
+  { id: 'punjabi', label: 'Hostel Special', emoji: '' },
+  { id: 'hindi', label: 'Hindi Songs', emoji: '🎸' },
+  { id: 'myplaylist', label: 'My Playlist', emoji: '📝' },
+  { id: 'bollywood90s', label: '90s Bollywood', emoji: '📼' },
+  { id: 'highway', label: 'Highway Special', emoji: '🛣️' },
+  { id: 'favorites', label: 'Old Songs', emoji: '🎙️' },
 ];
 
 export const SONGS = [
@@ -222,7 +222,7 @@ export const SONGS = [
 
   // ── 90s Bollywood ─────────────────────────────────────────────────────────
 
-  
+
   // ── Highway Special ───────────────────────────────────────────────────────
   {
     id: 'hw1',
@@ -235,17 +235,17 @@ export const SONGS = [
 
 
 
-  // ── Truck Driver Favorites ────────────────────────────────────────────────
-  
+  // ── Old Songs ───────────────────────────────────────────────────────────
+
   {
     id: 'td6',
-    title: 'Truck Driver Special',
-    artist: 'Highway Hit',
+    title: 'Old Is Gold',
+    artist: 'Classic Hit',
     youtubeId: 'w-Dtq7b-rpQ',
     duration: 300,
     category: 'favorites',
   }
- 
+
 ];
 
 export const getSongsByCategory = (categoryId) => {

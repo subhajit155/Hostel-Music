@@ -4,7 +4,7 @@ import { Music2, ExternalLink, Heart } from 'lucide-react';
 const Footer = () => {
   return (
     <footer className="mt-16 border-t border-border-muted bg-surface/60 backdrop-blur-md">
-      <div className="truck-divider" />
+      <div className="hostel-divider" />
 
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
@@ -21,7 +21,7 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-sm text-white/40 max-w-xs leading-relaxed">
-              Punjabi • Hindi • Bhojpuri • 90s Bollywood • Highway Songs
+              Made BY Subhajit
             </p>
             <p className="text-xs text-white/20">
               Music streamed via YouTube. All rights belong to respective artists & labels.

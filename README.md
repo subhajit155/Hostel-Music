@@ -1,39 +1,41 @@
-# 🚛 Truck Driver Music
+# 🎵 Hostel Music
 
-**ट्रक ड्राइवर — Truck Driver Music**
+**हॉस्टल म्यूज़िक — Hostel Music**
 
-> *बुरी नज़र वाले तेरा मुँह काला* 🚛
+> *Tune in, vibe out* 🎵
 
-A modern, responsive Indian highway music player built with React + Vite + Tailwind CSS. Streams Punjabi, Hindi, Bhojpuri, and 90s Bollywood music via the YouTube IFrame API.
+A modern, responsive Indian music player built with **React 19 + Vite + Tailwind CSS v3**.  
+Streams Punjabi, Hindi, and 90s Bollywood classics via the YouTube IFrame API.
 
 ---
 
-## 🎵 Features
+## ✨ Features
 
-- **Full Music Player** — Play/Pause, Prev, Next, Seek bar, Volume control
-- **Shuffle & Repeat** modes
-- **6 Song Categories** — Punjabi Hits, Hindi Songs, Bhojpuri Songs, 90s Bollywood, Highway Special, Truck Driver Favorites
-- **Search** — Filter songs by title or artist
-- **Favorites** — Heart any song; persists in localStorage
-- **Recently Played** — Tracks listening history in localStorage
-- **Auto-advance** — Moves to the next song when the current one ends
-- **Mobile sticky player** — Bottom bar with large touch-friendly controls
-- **Error state** — Shows friendly message when a video is unavailable
-- **Dark theme** — Charcoal + truck-red + gold palette
+- 🎧 **Full Music Player** — Play/Pause, Previous, Next, Seek bar, Volume control
+- 🔀 **Shuffle & Repeat** — Toggle shuffle and repeat modes
+- 📂 **6 Song Categories** — Hostel Special, Hindi Songs, My Playlist, 90s Bollywood, Highway Special, Old Songs
+- 🔍 **Search** — Filter songs in real-time by title or artist
+- ❤️ **Favourites** — Heart any song; persisted in `localStorage`
+- 🕓 **Recently Played** — Listening history tracked in `localStorage`
+- ⏭️ **Auto-advance** — Automatically plays the next song when the current one ends
+- 📱 **Mobile Sticky Player** — Bottom bar with large, touch-friendly controls
+- ⚠️ **Error Handling** — Friendly message when a YouTube video is unavailable
+- 🌙 **Dark Theme** — Charcoal + red + gold palette
 
 ---
 
 ## 🛠 Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | React 18 + Vite |
-| Styling | Tailwind CSS v3 |
-| Music Source | YouTube IFrame API via `react-youtube` |
-| Icons | Lucide React |
-| Fonts | Poppins + Noto Sans Devanagari (Google Fonts) |
-| State | React Context + useReducer |
-| Storage | localStorage (favorites, recently played) |
+| Layer        | Technology                                    |
+|--------------|-----------------------------------------------|
+| Framework    | React 19 + Vite 8                             |
+| Styling      | Tailwind CSS v3                               |
+| Music Source | YouTube IFrame API via `react-youtube`        |
+| Icons        | Lucide React                                  |
+| Fonts        | Poppins + Noto Sans Devanagari (Google Fonts) |
+| State        | React Context + `useReducer`                  |
+| Storage      | `localStorage` (favourites, recently played)  |
+| Linting      | OxLint                                        |
 
 ---
 
@@ -65,7 +67,7 @@ Open **http://localhost:5173** in your browser.
 npm run build
 ```
 
-The production bundle will be in the `dist/` folder.
+The production bundle will be output to the `dist/` folder.
 
 ### Preview Production Build
 
@@ -78,35 +80,60 @@ npm run preview
 ## 📁 Project Structure
 
 ```
-src/
-├── components/
-│   ├── Header.jsx           # Sticky top header with branding
-│   ├── HeroPlayer.jsx       # Main music player card
-│   ├── PlayerControls.jsx   # Play/Pause/Prev/Next/Shuffle/Repeat
-│   ├── ProgressBar.jsx      # Seek bar + timestamps
-│   ├── VolumeControl.jsx    # Volume slider + mute
-│   ├── CategoryTabs.jsx     # Horizontal category tab bar
-│   ├── SearchBar.jsx        # Search input
-│   ├── SongCard.jsx         # Individual song card
-│   ├── PlaylistSection.jsx  # Song grid
-│   ├── StickyMobilePlayer.jsx # Mobile bottom bar
-│   └── Footer.jsx           # Footer with links
-├── context/
-│   └── MusicContext.jsx     # Global state (useReducer + Context)
-├── data/
-│   └── songs.js             # 30 curated songs with YouTube IDs
-├── hooks/
-│   └── useLocalStorage.js   # localStorage persistence hook
-├── utils/
-│   └── formatTime.js        # seconds → mm:ss formatter
-├── App.jsx                  # Root component
-├── main.jsx                 # Entry point
-└── index.css                # Global styles + Tailwind
+Truck Bala/
+├── public/
+│   ├── favicon.svg              # App favicon
+│   └── icons.svg                # SVG icon sprites
+├── src/
+│   ├── components/
+│   │   ├── Header.jsx           # Sticky top header with branding
+│   │   ├── HeroPlayer.jsx       # Main music player card
+│   │   ├── PlayerControls.jsx   # Play/Pause/Prev/Next/Shuffle/Repeat
+│   │   ├── ProgressBar.jsx      # Seek bar + timestamps
+│   │   ├── VolumeControl.jsx    # Volume slider + mute
+│   │   ├── CategoryTabs.jsx     # Horizontal category tab bar
+│   │   ├── SearchBar.jsx        # Real-time search input
+│   │   ├── SongCard.jsx         # Individual song card
+│   │   ├── PlaylistSection.jsx  # Song grid layout
+│   │   ├── StickyMobilePlayer.jsx # Mobile bottom bar
+│   │   └── Footer.jsx           # Footer with links
+│   ├── context/
+│   │   └── MusicContext.jsx     # Global state (useReducer + Context API)
+│   ├── data/
+│   │   └── songs.js             # Curated songs with YouTube IDs & categories
+│   ├── hooks/
+│   │   └── useLocalStorage.js   # localStorage persistence hook
+│   ├── utils/
+│   │   └── formatTime.js        # seconds → mm:ss formatter
+│   ├── App.jsx                  # Root component
+│   ├── main.jsx                 # App entry point
+│   ├── index.css                # Global styles + Tailwind base
+│   └── App.css                  # Component-level styles
+├── index.html                   # HTML shell + SEO meta tags
+├── tailwind.config.js           # Tailwind design tokens
+├── vite.config.js               # Vite build config
+└── package.json
 ```
 
 ---
 
-## 🌐 Deploying to GitHub Pages
+## 🎶 Song Categories
+
+| Category        | Emoji | Description                        |
+|-----------------|-------|------------------------------------|
+| All Songs       | 🎵    | Full combined playlist              |
+| Hostel Special  | 🏠    | Punjabi hostel anthems              |
+| Hindi Songs     | 🎸    | Popular Hindi tracks                |
+| My Playlist     | 📝    | Hand-picked personal favourites     |
+| 90s Bollywood   | 📼    | Retro Bollywood classics            |
+| Highway Special | 🛣️    | Long-drive road trip hits           |
+| Old Songs       | 🎙️    | Timeless old-school gems            |
+
+---
+
+## 🌐 Deployment
+
+### GitHub Pages
 
 ```bash
 # 1. Build the project
@@ -115,27 +142,32 @@ npm run build
 # 2. Install gh-pages (if not already)
 npm install -D gh-pages
 
-# 3. Deploy (add to package.json scripts: "deploy": "gh-pages -d dist")
+# 3. Add to package.json scripts:
+#    "deploy": "gh-pages -d dist"
 npm run deploy
 ```
 
-Or deploy the `dist/` folder to **Vercel**, **Netlify**, or any static hosting:
+### Other Platforms
 
-- **Vercel**: `vercel --prod`
-- **Netlify**: Drag & drop `dist/` folder
+| Platform | Command / Method               |
+|----------|-------------------------------|
+| Vercel   | `vercel --prod`               |
+| Netlify  | Drag & drop the `dist/` folder |
 
 ---
 
 ## 📝 Notes
 
-- Music is streamed via YouTube IFrame API — no music is downloaded or hosted illegally.
+- Music is streamed via the YouTube IFrame API — no music is downloaded or hosted illegally.
 - All songs use real YouTube video IDs of publicly available content.
-- Some songs may be unavailable in certain regions due to YouTube's geo-restrictions; the error state handles this gracefully.
+- Some videos may be unavailable in certain regions due to YouTube geo-restrictions; the error state handles this gracefully.
 
 ---
 
-## 🇮🇳 Made for highway warriors
+## 🇮🇳 Made with ❤️ for music lovers
 
-*Punjabi • Hindi • Bhojpuri • 90s Bollywood • Highway Songs*
+*Hostel Special • Hindi Songs • My Playlist • 90s Bollywood • Highway Special • Old Songs*
 
-**जय हिंद** 🇮🇳
+© 2026 **Hostel Music** — Made with ❤️ for music lovers.
+
+**KEORA** 🇮🇳

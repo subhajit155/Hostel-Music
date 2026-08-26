@@ -43,7 +43,7 @@ const Header = () => {
       </div>
 
       {/* Decorative bottom line */}
-      <div className="truck-divider" />
+      <div className="" />
     </header>
   );
 };

@@ -32,7 +32,7 @@ const CategoryTabs = () => {
           );
         })}
       </div>
-      <div className="truck-divider mt-2" />
+      <div className="hostel-divider mt-2" />
     </div>
   );
 };
