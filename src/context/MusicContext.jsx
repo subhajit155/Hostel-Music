@@ -112,6 +112,13 @@ export const MusicProvider = ({ children }) => {
 
   const playSong = useCallback((song) => {
     dispatch({ type: 'SET_SONG', song });
+    // Load the new video on the EXISTING player instance instead of remounting.
+    // Remounting creates a new iframe which browsers block from autoplaying in
+    // background tabs. loadVideoById reuses the same iframe (already trusted
+    // by the browser) and starts playback immediately, even in the background.
+    if (playerRef.current) {
+      playerRef.current.loadVideoById(song.youtubeId);
+    }
     // Track recently played
     setRecentlyPlayed(prev => {
       const filtered = prev.filter(s => s.id !== song.id);

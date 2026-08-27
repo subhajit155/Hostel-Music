@@ -179,8 +179,11 @@ const HeroPlayer = () => {
         {/* Hidden YouTube Player */}
         {currentSong && (
           <div className="sr-only" aria-hidden="true">
+            {/* No key prop — keep the same player instance alive across song changes.
+                Song switching is handled via loadVideoById() in MusicContext so the
+                player never remounts (which would be blocked by autoplay policy in
+                background tabs). */}
             <YouTube
-              key={currentSong.youtubeId}
               videoId={currentSong.youtubeId}
               opts={ytOpts}
               onReady={onPlayerReady}
