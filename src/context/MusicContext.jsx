@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useRef, useEffect, useCallback } from 'react';
-import { SONGS } from '../data/songs';
+import { SONGS, getThumbnail } from '../data/songs';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 // ── Initial State ────────────────────────────────────────────────────────────
@@ -57,8 +57,31 @@ export const MusicProvider = ({ children }) => {
   const playerRef = useRef(null);
   const progressTimer = useRef(null);
   const playNextRef = useRef(null); // always holds the latest playNext
+  const playPrevRef = useRef(null); // always holds the latest playPrev
+  const silentAudioRef = useRef(null);
   const [favorites, setFavorites] = useLocalStorage('tdm_favorites', []);
   const [recentlyPlayed, setRecentlyPlayed] = useLocalStorage('tdm_recent', []);
+
+  // ── Background Audio Keep-Alive for Screen Off / Lock Screen ──────────────
+  useEffect(() => {
+    // Silent 1-second WAV audio loop to keep mobile browser audio session active
+    // when the screen turns off or locks
+    const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+    silentAudio.loop = true;
+    silentAudioRef.current = silentAudio;
+
+    return () => {
+      silentAudio.pause();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (state.isPlaying) {
+      silentAudioRef.current?.play().catch(() => {});
+    } else {
+      silentAudioRef.current?.pause();
+    }
+  }, [state.isPlaying]);
 
   // ── Track progress ─────────────────────────────────────────────────────────
   const startProgressTimer = useCallback(() => {
@@ -138,11 +161,6 @@ export const MusicProvider = ({ children }) => {
     playSong(list[idx]);
   }, [getFilteredPlaylist, getCurrentIndex, state.shuffle, playSong]);
 
-  // Keep ref in sync so callbacks always have the latest version
-  useEffect(() => {
-    playNextRef.current = playNext;
-  }, [playNext]);
-
   const playPrev = useCallback(() => {
     const list = getFilteredPlaylist();
     if (!list.length) return;
@@ -150,6 +168,72 @@ export const MusicProvider = ({ children }) => {
     idx = (idx - 1 + list.length) % list.length;
     playSong(list[idx]);
   }, [getFilteredPlaylist, getCurrentIndex, playSong]);
+
+  // Keep refs in sync so callbacks always have the latest version
+  useEffect(() => {
+    playNextRef.current = playNext;
+    playPrevRef.current = playPrev;
+  }, [playNext, playPrev]);
+
+  // ── Media Session API (Lock Screen & Notification Controls) ────────────────
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !state.currentSong) return;
+
+    const song = state.currentSong;
+    navigator.mediaSession.metadata = new window.MediaMetadata({
+      title: song.title,
+      artist: song.artist,
+      album: 'Hostel Music',
+      artwork: [
+        { src: getThumbnail(song.youtubeId), sizes: '512x512', type: 'image/jpeg' },
+      ],
+    });
+
+    navigator.mediaSession.playbackState = state.isPlaying ? 'playing' : 'paused';
+  }, [state.currentSong, state.isPlaying]);
+
+  const togglePlay = useCallback(() => {
+    const player = playerRef.current;
+    if (!player) return;
+    if (state.isPlaying) {
+      player.pauseVideo();
+    } else {
+      player.playVideo();
+    }
+    dispatch({ type: 'TOGGLE_PLAY' });
+  }, [state.isPlaying]);
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+
+    try {
+      navigator.mediaSession.setActionHandler('play', () => {
+        togglePlay();
+      });
+      navigator.mediaSession.setActionHandler('pause', () => {
+        togglePlay();
+      });
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        playNextRef.current?.();
+      });
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        playPrevRef.current?.();
+      });
+    } catch {
+      /* mediaSession action unsupported */
+    }
+
+    return () => {
+      try {
+        navigator.mediaSession.setActionHandler('play', null);
+        navigator.mediaSession.setActionHandler('pause', null);
+        navigator.mediaSession.setActionHandler('nexttrack', null);
+        navigator.mediaSession.setActionHandler('previoustrack', null);
+      } catch {
+        /* cleanup */
+      }
+    };
+  }, [togglePlay]);
 
   const seek = useCallback((percent) => {
     const player = playerRef.current;
@@ -203,16 +287,7 @@ export const MusicProvider = ({ children }) => {
     }
   }, [state.repeat]); // no longer depends on playNext — reads from ref instead
 
-  const togglePlay = useCallback(() => {
-    const player = playerRef.current;
-    if (!player) return;
-    if (state.isPlaying) {
-      player.pauseVideo();
-    } else {
-      player.playVideo();
-    }
-    dispatch({ type: 'TOGGLE_PLAY' });
-  }, [state.isPlaying]);
+
 
   const value = {
     ...state,
