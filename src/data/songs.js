@@ -221,7 +221,14 @@ export const SONGS = [
   },
 
   // ── 90s Bollywood ─────────────────────────────────────────────────────────
-
+  {
+    id: '90s1',
+    title: 'Old Is Gold',
+    artist: 'Classic Hit',
+    youtubeId: 'w-Dtq7b-rpQ',
+    duration: 300,
+    category: 'bollywood90s',
+  },
 
   // ── Highway Special ───────────────────────────────────────────────────────
   {
@@ -236,14 +243,7 @@ export const SONGS = [
 
 
   // ── Old Songs ───────────────────────────────────────────────────────────
-  {
-    id: 'td6',
-    title: 'Old Is Gold',
-    artist: 'Classic Hit',
-    youtubeId: 'w-Dtq7b-rpQ',
-    duration: 300,
-    category: 'favorites',
-  },
+
   {
     id: 'os1',
     title: 'Pal Pal Dil Ke Paas',
