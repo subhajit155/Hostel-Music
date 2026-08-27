@@ -48,35 +48,6 @@ Streams Punjabi, Hindi, and 90s Bollywood classics via the YouTube IFrame API.
 - Node.js 18+
 - npm 9+
 
-### Install and Run
-
-```bash
-# 1. Navigate to the project folder
-cd "Truck Bala"
-
-# 2. Install dependencies
-npm install
-
-# 3. Start the development server
-npm run dev
-```
-
-Open **http://localhost:5173** in your browser.
-
-### Build for Production
-
-```bash
-npm run build
-```
-
-The production bundle will be output to the `dist/` folder.
-
-### Preview Production Build
-
-```bash
-npm run preview
-```
-
 ---
 
 ## 📁 Project Structure
