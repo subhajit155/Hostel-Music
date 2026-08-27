@@ -53,7 +53,7 @@ Streams Punjabi, Hindi, and 90s Bollywood classics via the YouTube IFrame API.
 ## 📁 Project Structure
 
 ```
-Truck Bala/
+Hostel Music/
 ├── public/
 │   ├── favicon.svg              # App favicon
 │   └── icons.svg                # SVG icon sprites
