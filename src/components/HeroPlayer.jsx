@@ -23,6 +23,18 @@ const HeroPlayer = () => {
   const skipTimer  = useRef(null);
   const countTimer = useRef(null);
 
+  // Freeze the initial videoId so it NEVER changes as a prop.
+  // If we let videoId prop change, react-youtube calls player.cueVideoById()
+  // which stops playback — overriding our loadVideoById() call in playSong.
+  // All song switching is done via loadVideoById() in MusicContext instead.
+  const stableVideoId = useRef(currentSong?.youtubeId);
+
+  // Keep onStateChange fresh in a ref so we always fire the latest handler
+  // even if react-youtube cached the initial one at player creation.
+  const onStateChangeRef = useRef(onPlayerStateChange);
+  useEffect(() => { onStateChangeRef.current = onPlayerStateChange; }, [onPlayerStateChange]);
+  const stableOnStateChange = useRef((e) => onStateChangeRef.current(e)).current;
+
   const thumb = currentSong ? getThumbnail(currentSong.youtubeId) : null;
 
   // Auto-skip: when error fires, count down 3 s then play next song
@@ -184,10 +196,10 @@ const HeroPlayer = () => {
                 player never remounts (which would be blocked by autoplay policy in
                 background tabs). */}
             <YouTube
-              videoId={currentSong.youtubeId}
+              videoId={stableVideoId.current}
               opts={ytOpts}
               onReady={onPlayerReady}
-              onStateChange={onPlayerStateChange}
+              onStateChange={stableOnStateChange}
               onError={handleError}
             />
           </div>
