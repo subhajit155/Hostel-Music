@@ -336,7 +336,7 @@ export const SONGS = [
     id: 'os12',
     title: 'Lag Ja Gale',
     artist: 'Lata Mangeshkar',
-    youtubeId: 'y2fgw1Oqz28',
+    youtubeId: 'TFr6G5zveS8',
     duration: 300,
     category: 'favorites',
   },
