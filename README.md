@@ -4,6 +4,8 @@
 
 > *Tune in, vibe out* 🎵
 
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-hostel--music.vercel.app-black?style=for-the-badge&logo=vercel)](https://hostel-music.vercel.app)
+
 A modern, responsive Indian music player built with **React 19 + Vite + Tailwind CSS v3**.  
 Streams Punjabi, Hindi, and 90s Bollywood classics via the YouTube IFrame API.
 
@@ -149,9 +151,9 @@ npm run deploy
 
 ### Other Platforms
 
-| Platform | Command / Method               |
-|----------|-------------------------------|
-| Vercel   | `vercel --prod`               |
+| Platform | Live URL / Method |
+|----------|-------------------|
+| **Vercel** | 🌐 **[hostel-music.vercel.app](https://hostel-music.vercel.app)** |
 | Netlify  | Drag & drop the `dist/` folder |
 
 ---
