@@ -12,6 +12,24 @@ export const CATEGORIES = [
 ];
 
 export const SONGS = [
+  // ── Hindi Songs ───────────────────────────────────────────────────────────
+  {
+    id: 'h1',
+    title: 'Tum Hi Ho',
+    artist: 'Arijit Singh',
+    youtubeId: 'Umqb9KENgmk',
+    duration: 261,
+    category: 'hindi',
+  },
+  {
+    id: 'h2',
+    title: 'Kesariya',
+    artist: 'Arijit Singh',
+    youtubeId: 'BddP6PYo2gs',
+    duration: 264,
+    category: 'hindi',
+  },
+
   // ── Hostel Special ─────────────────────────────────────────────────────────
   {
     id: 'hs1',
@@ -164,24 +182,6 @@ export const SONGS = [
     youtubeId: 'sNQyFU4w3H4',
     duration: 300,
     category: 'punjabi',
-  },
-
-  // ── Hindi Songs ───────────────────────────────────────────────────────────
-  {
-    id: 'h1',
-    title: 'Tum Hi Ho',
-    artist: 'Arijit Singh',
-    youtubeId: 'Umqb9KENgmk',
-    duration: 261,
-    category: 'hindi',
-  },
-  {
-    id: 'h2',
-    title: 'Kesariya',
-    artist: 'Arijit Singh',
-    youtubeId: 'BddP6PYo2gs',
-    duration: 264,
-    category: 'hindi',
   },
 
 
