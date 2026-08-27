@@ -56,6 +56,7 @@ export const MusicProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const playerRef = useRef(null);
   const progressTimer = useRef(null);
+  const playNextRef = useRef(null); // always holds the latest playNext
   const [favorites, setFavorites] = useLocalStorage('tdm_favorites', []);
   const [recentlyPlayed, setRecentlyPlayed] = useLocalStorage('tdm_recent', []);
 
@@ -130,6 +131,11 @@ export const MusicProvider = ({ children }) => {
     playSong(list[idx]);
   }, [getFilteredPlaylist, getCurrentIndex, state.shuffle, playSong]);
 
+  // Keep ref in sync so callbacks always have the latest version
+  useEffect(() => {
+    playNextRef.current = playNext;
+  }, [playNext]);
+
   const playPrev = useCallback(() => {
     const list = getFilteredPlaylist();
     if (!list.length) return;
@@ -175,19 +181,20 @@ export const MusicProvider = ({ children }) => {
   const onPlayerStateChange = useCallback((event) => {
     // YT.PlayerState: ENDED=0, PLAYING=1, PAUSED=2
     if (event.data === 0) {
-      // Song ended
+      // Song ended — use ref so we always call the freshest playNext
+      // (avoids stale closure when app is in the background)
       if (state.repeat) {
         playerRef.current?.seekTo(0, true);
         playerRef.current?.playVideo();
       } else {
-        playNext();
+        playNextRef.current?.();
       }
     } else if (event.data === 1) {
       dispatch({ type: 'SET_PLAYING', value: true });
     } else if (event.data === 2) {
       dispatch({ type: 'SET_PLAYING', value: false });
     }
-  }, [state.repeat, playNext]);
+  }, [state.repeat]); // no longer depends on playNext — reads from ref instead
 
   const togglePlay = useCallback(() => {
     const player = playerRef.current;
