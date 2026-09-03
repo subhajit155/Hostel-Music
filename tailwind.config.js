@@ -44,6 +44,8 @@ export default {
         'fadeIn':     'fadeIn 0.3s ease-out',
         'fade-in':    'fadeIn 0.3s ease-out',
         'slide-up':   'slideUp 0.4s ease-out',
+        'slideDown':  'slideDown 0.4s ease-out',
+        'floatUp':    'floatUp 2.8s ease-out forwards',
         'bar1':       'barAnim 0.8s ease-in-out infinite alternate',
         'bar2':       'barAnim 1.1s ease-in-out infinite alternate 0.2s',
         'bar3':       'barAnim 0.9s ease-in-out infinite alternate 0.4s',
@@ -60,6 +62,16 @@ export default {
         slideUp: {
           from: { opacity: 0, transform: 'translateY(16px)' },
           to:   { opacity: 1, transform: 'translateY(0)' },
+        },
+        slideDown: {
+          from: { opacity: 0, transform: 'translate(-50%, -20px)' },
+          to:   { opacity: 1, transform: 'translate(-50%, 0)' },
+        },
+        floatUp: {
+          '0%':   { opacity: 0, transform: 'translateY(20px) scale(0.5)' },
+          '15%':  { opacity: 1, transform: 'translateY(-20px) scale(1.2)' },
+          '80%':  { opacity: 0.9, transform: 'translateY(-250px) scale(1)' },
+          '100%': { opacity: 0, transform: 'translateY(-350px) scale(0.8)' },
         },
         barAnim: {
           '0%':   { height: '20%' },

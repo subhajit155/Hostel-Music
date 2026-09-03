@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useReducer, useRef, useEffect, useCallback, useMemo, useState } from 'react';
 import { SONGS, getThumbnail } from '../data/songs';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useRemoteControl } from '../hooks/useRemoteControl';
@@ -12,7 +12,7 @@ const initialState = {
   duration: 0,       // seconds
   currentTime: 0,    // seconds
   shuffle: false,
-  repeat: false,     // 'none' | 'one' — using boolean for simplicity
+  repeat: false,     // 'none' | 'one'
   selectedCategory: 'all',
   searchQuery: '',
   playlist: SONGS,
@@ -57,16 +57,25 @@ export const MusicProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const playerRef = useRef(null);
   const progressTimer = useRef(null);
-  const playNextRef = useRef(null); // always holds the latest playNext
-  const playPrevRef = useRef(null); // always holds the latest playPrev
+  const playNextRef = useRef(null);
+  const playPrevRef = useRef(null);
   const silentAudioRef = useRef(null);
+  const sleepTimerRef = useRef(null);
+  const sleepIntervalRef = useRef(null);
+
   const [favorites, setFavorites] = useLocalStorage('tdm_favorites', []);
   const [recentlyPlayed, setRecentlyPlayed] = useLocalStorage('tdm_recent', []);
+  const [queue, setQueue] = useState([]);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [cinemaMode, setCinemaMode] = useState(false);
+  const [partyMode, setPartyMode] = useState(false);
+  const [sleepTimerMinutes, setSleepTimerMinutes] = useState(null);
+  const [sleepTimerSecondsLeft, setSleepTimerSecondsLeft] = useState(null);
+  const [liveReactions, setLiveReactions] = useState([]);
+  const [djShoutout, setDjShoutout] = useState(null);
 
   // ── Background Audio Keep-Alive for Screen Off / Lock Screen ──────────────
   useEffect(() => {
-    // Silent 1-second WAV audio loop to keep mobile browser audio session active
-    // when the screen turns off or locks
     const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
     silentAudio.loop = true;
     silentAudioRef.current = silentAudio;
@@ -136,21 +145,29 @@ export const MusicProvider = ({ children }) => {
 
   const playSong = useCallback((song) => {
     dispatch({ type: 'SET_SONG', song });
-    // Load the new video on the EXISTING player instance instead of remounting.
-    // Remounting creates a new iframe which browsers block from autoplaying in
-    // background tabs. loadVideoById reuses the same iframe (already trusted
-    // by the browser) and starts playback immediately, even in the background.
     if (playerRef.current) {
       playerRef.current.loadVideoById(song.youtubeId);
+      try {
+        playerRef.current.setPlaybackRate(playbackRate);
+      } catch {
+        /* ignore */
+      }
     }
-    // Track recently played
     setRecentlyPlayed(prev => {
       const filtered = prev.filter(s => s.id !== song.id);
       return [song, ...filtered].slice(0, 20);
     });
-  }, [setRecentlyPlayed]);
+  }, [setRecentlyPlayed, playbackRate]);
 
   const playNext = useCallback(() => {
+    // If there is an item in the queue, play it first!
+    if (queue.length > 0) {
+      const [nextQueued, ...remainingQueue] = queue;
+      setQueue(remainingQueue);
+      playSong(nextQueued);
+      return;
+    }
+
     const list = getFilteredPlaylist();
     if (!list.length) return;
     let idx = getCurrentIndex();
@@ -160,7 +177,7 @@ export const MusicProvider = ({ children }) => {
       idx = (idx + 1) % list.length;
     }
     playSong(list[idx]);
-  }, [getFilteredPlaylist, getCurrentIndex, state.shuffle, playSong]);
+  }, [queue, getFilteredPlaylist, getCurrentIndex, state.shuffle, playSong]);
 
   const playPrev = useCallback(() => {
     const list = getFilteredPlaylist();
@@ -170,13 +187,12 @@ export const MusicProvider = ({ children }) => {
     playSong(list[idx]);
   }, [getFilteredPlaylist, getCurrentIndex, playSong]);
 
-  // Keep refs in sync so callbacks always have the latest version
   useEffect(() => {
     playNextRef.current = playNext;
     playPrevRef.current = playPrev;
   }, [playNext, playPrev]);
 
-  // ── Media Session API (Lock Screen & Notification Controls) ────────────────
+  // ── Media Session API ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!('mediaSession' in navigator) || !state.currentSong) return;
 
@@ -208,18 +224,10 @@ export const MusicProvider = ({ children }) => {
     if (!('mediaSession' in navigator)) return;
 
     try {
-      navigator.mediaSession.setActionHandler('play', () => {
-        togglePlay();
-      });
-      navigator.mediaSession.setActionHandler('pause', () => {
-        togglePlay();
-      });
-      navigator.mediaSession.setActionHandler('nexttrack', () => {
-        playNextRef.current?.();
-      });
-      navigator.mediaSession.setActionHandler('previoustrack', () => {
-        playPrevRef.current?.();
-      });
+      navigator.mediaSession.setActionHandler('play', () => togglePlay());
+      navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+      navigator.mediaSession.setActionHandler('nexttrack', () => playNextRef.current?.());
+      navigator.mediaSession.setActionHandler('previoustrack', () => playPrevRef.current?.());
     } catch {
       /* mediaSession action unsupported */
     }
@@ -251,6 +259,15 @@ export const MusicProvider = ({ children }) => {
     playerRef.current?.setVolume(vol);
   }, []);
 
+  const changePlaybackRate = useCallback((rate) => {
+    setPlaybackRate(rate);
+    try {
+      playerRef.current?.setPlaybackRate(rate);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const toggleFavorite = useCallback((song) => {
     setFavorites(prev => {
       const exists = prev.some(s => s.id === song.id);
@@ -262,19 +279,79 @@ export const MusicProvider = ({ children }) => {
     return favorites.some(s => s.id === songId);
   }, [favorites]);
 
+  // ── Sleep Timer ────────────────────────────────────────────────────────────
+  const handleSetSleepTimer = useCallback((minutes) => {
+    clearTimeout(sleepTimerRef.current);
+    clearInterval(sleepIntervalRef.current);
+
+    if (!minutes || minutes <= 0) {
+      setSleepTimerMinutes(null);
+      setSleepTimerSecondsLeft(null);
+      return;
+    }
+
+    setSleepTimerMinutes(minutes);
+    let seconds = minutes * 60;
+    setSleepTimerSecondsLeft(seconds);
+
+    sleepIntervalRef.current = setInterval(() => {
+      seconds -= 1;
+      setSleepTimerSecondsLeft(seconds);
+      if (seconds <= 0) {
+        clearInterval(sleepIntervalRef.current);
+      }
+    }, 1000);
+
+    sleepTimerRef.current = setTimeout(() => {
+      if (playerRef.current) {
+        playerRef.current.pauseVideo();
+        dispatch({ type: 'SET_PLAYING', value: false });
+      }
+      setSleepTimerMinutes(null);
+      setSleepTimerSecondsLeft(null);
+    }, minutes * 60 * 1000);
+  }, []);
+
+  // ── Live Floating Reaction Emojis & DJ Shoutouts ───────────────────────────
+  const triggerReaction = useCallback((emoji) => {
+    const reactionId = `react-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+    const xPos = Math.floor(10 + Math.random() * 80); // random percent across screen
+    setLiveReactions(prev => [...prev, { id: reactionId, emoji, x: xPos }]);
+
+    setTimeout(() => {
+      setLiveReactions(prev => prev.filter(r => r.id !== reactionId));
+    }, 3000);
+  }, []);
+
+  const triggerShoutout = useCallback((message) => {
+    if (!message || !message.trim()) return;
+    const shoutoutObj = {
+      id: `shout-${Date.now()}`,
+      message: message.trim(),
+      timestamp: Date.now(),
+    };
+    setDjShoutout(shoutoutObj);
+
+    setTimeout(() => {
+      setDjShoutout(prev => (prev?.id === shoutoutObj.id ? null : prev));
+    }, 6000);
+  }, []);
+
   const onPlayerReady = useCallback((event) => {
     playerRef.current = event.target;
     event.target.setVolume(state.volume);
+    try {
+      event.target.setPlaybackRate(playbackRate);
+    } catch {
+      /* ignore */
+    }
     if (state.isPlaying) {
       event.target.playVideo();
     }
-  }, [state.volume, state.isPlaying]);
+  }, [state.volume, state.isPlaying, playbackRate]);
 
   const onPlayerStateChange = useCallback((event) => {
-    // YT.PlayerState: ENDED=0, PLAYING=1, PAUSED=2
     if (event.data === 0) {
-      // Song ended — use ref so we always call the freshest playNext
-      // (avoids stale closure when app is in the background)
       if (state.repeat) {
         playerRef.current?.seekTo(0, true);
         playerRef.current?.playVideo();
@@ -286,9 +363,7 @@ export const MusicProvider = ({ children }) => {
     } else if (event.data === 2) {
       dispatch({ type: 'SET_PLAYING', value: false });
     }
-  }, [state.repeat]); // no longer depends on playNext — reads from ref instead
-
-
+  }, [state.repeat]);
 
   // ── Remote Control Sync (Host Mode) ───────────────────────────────────────
   const hostStateSnapshot = useMemo(() => ({
@@ -300,7 +375,16 @@ export const MusicProvider = ({ children }) => {
     duration: state.duration,
     shuffle: state.shuffle,
     repeat: state.repeat,
+    selectedCategory: state.selectedCategory,
+    searchQuery: state.searchQuery,
+    playbackRate,
+    cinemaMode,
+    partyMode,
+    sleepTimerMinutes,
+    sleepTimerSecondsLeft,
+    queue,
     favorites,
+    recentlyPlayed,
   }), [
     state.currentSong,
     state.isPlaying,
@@ -310,7 +394,16 @@ export const MusicProvider = ({ children }) => {
     state.duration,
     state.shuffle,
     state.repeat,
+    state.selectedCategory,
+    state.searchQuery,
+    playbackRate,
+    cinemaMode,
+    partyMode,
+    sleepTimerMinutes,
+    sleepTimerSecondsLeft,
+    queue,
     favorites,
+    recentlyPlayed,
   ]);
 
   const handleRemoteCommand = useCallback((cmd) => {
@@ -347,11 +440,87 @@ export const MusicProvider = ({ children }) => {
         if (found) playSong(found);
         break;
       }
+      case 'CMD_PLAY_CUSTOM_YT': {
+        if (cmd.youtubeId) {
+          const customSong = {
+            id: `yt-${cmd.youtubeId}-${Date.now()}`,
+            title: cmd.title || 'Custom Video Track',
+            artist: cmd.artist || 'YouTube Stream',
+            youtubeId: cmd.youtubeId,
+            duration: cmd.duration || 240,
+            category: 'all',
+          };
+          playSong(customSong);
+        }
+        break;
+      }
       case 'CMD_TOGGLE_SHUFFLE':
         dispatch({ type: 'TOGGLE_SHUFFLE' });
         break;
       case 'CMD_TOGGLE_REPEAT':
         dispatch({ type: 'TOGGLE_REPEAT' });
+        break;
+      case 'CMD_SET_CATEGORY':
+        if (typeof cmd.category === 'string') {
+          dispatch({ type: 'SET_CATEGORY', value: cmd.category });
+        }
+        break;
+      case 'CMD_SET_SEARCH':
+        if (typeof cmd.query === 'string') {
+          dispatch({ type: 'SET_SEARCH', value: cmd.query });
+        }
+        break;
+      case 'CMD_SET_SPEED':
+        if (typeof cmd.rate === 'number') {
+          changePlaybackRate(cmd.rate);
+        }
+        break;
+      case 'CMD_SET_CINEMA_MODE':
+        setCinemaMode(typeof cmd.value === 'boolean' ? cmd.value : prev => !prev);
+        break;
+      case 'CMD_SET_PARTY_MODE':
+        setPartyMode(typeof cmd.value === 'boolean' ? cmd.value : prev => !prev);
+        break;
+      case 'CMD_SET_SLEEP_TIMER':
+        handleSetSleepTimer(cmd.minutes);
+        break;
+      case 'CMD_SEND_REACTION':
+        if (cmd.emoji) {
+          triggerReaction(cmd.emoji);
+        }
+        break;
+      case 'CMD_SEND_SHOUTOUT':
+        if (cmd.message) {
+          triggerShoutout(cmd.message);
+        }
+        break;
+      case 'CMD_SCROLL_LAPTOP':
+        if (typeof window !== 'undefined') {
+          if (cmd.target === 'player') {
+            document.getElementById('player')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else if (cmd.target === 'playlist') {
+            document.getElementById('playlist')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else if (cmd.target === 'top') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else if (cmd.target === 'bottom') {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+          }
+        }
+        break;
+      case 'CMD_ADD_TO_QUEUE': {
+        const found = SONGS.find(s => s.id === cmd.songId) || cmd.song;
+        if (found) {
+          setQueue(prev => [...prev, found]);
+        }
+        break;
+      }
+      case 'CMD_REMOVE_FROM_QUEUE':
+        if (typeof cmd.index === 'number') {
+          setQueue(prev => prev.filter((_, idx) => idx !== cmd.index));
+        }
+        break;
+      case 'CMD_CLEAR_QUEUE':
+        setQueue([]);
         break;
       case 'CMD_TOGGLE_FAVORITE': {
         const target = SONGS.find(s => s.id === cmd.songId);
@@ -361,7 +530,18 @@ export const MusicProvider = ({ children }) => {
       default:
         break;
     }
-  }, [togglePlay, state.isPlaying, seek, setVolume, playSong, toggleFavorite]);
+  }, [
+    togglePlay,
+    state.isPlaying,
+    seek,
+    setVolume,
+    playSong,
+    changePlaybackRate,
+    handleSetSleepTimer,
+    triggerReaction,
+    triggerShoutout,
+    toggleFavorite,
+  ]);
 
   const hostRemote = useRemoteControl({
     isHost: true,
@@ -384,6 +564,14 @@ export const MusicProvider = ({ children }) => {
     playerRef,
     favorites,
     recentlyPlayed,
+    queue,
+    playbackRate,
+    cinemaMode,
+    partyMode,
+    sleepTimerMinutes,
+    sleepTimerSecondsLeft,
+    liveReactions,
+    djShoutout,
     filteredPlaylist: getFilteredPlaylist(),
     remoteControl: hostRemote,
     playSong,
@@ -392,6 +580,13 @@ export const MusicProvider = ({ children }) => {
     togglePlay,
     seek,
     setVolume,
+    setPlaybackRate: changePlaybackRate,
+    setCinemaMode,
+    setPartyMode,
+    setSleepTimer: handleSetSleepTimer,
+    triggerReaction,
+    triggerShoutout,
+    setQueue,
     toggleFavorite,
     isFavorite,
     onPlayerReady,
