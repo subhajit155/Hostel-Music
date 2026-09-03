@@ -1,7 +1,11 @@
 import React from 'react';
-import { Music2 } from 'lucide-react';
+import { Music2, Smartphone, Radio } from 'lucide-react';
+import { useMusicContext } from '../context/MusicContext';
 
-const Header = () => {
+const Header = ({ onOpenRemoteModal }) => {
+  const { remoteControl } = useMusicContext();
+  const connectedCount = remoteControl?.connectedDevicesCount || 0;
+
   return (
     <header className="sticky top-0 z-50 w-full bg-charcoal/90 backdrop-blur-md border-b border-border-muted">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -24,26 +28,48 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-white/60">
-          <a href="#player"   className="hover:text-gold transition-colors">Player</a>
-          <a href="#playlist" className="hover:text-gold transition-colors">Playlist</a>
-          <a
-            href="https://music.youtube.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-truck-red hover:text-highway-orange transition-colors"
-          >
-            <Music2 className="w-4 h-4" />
-            YouTube Music
-          </a>
-        </nav>
+        {/* Desktop nav + Remote Control Action */}
+        <div className="flex items-center gap-3 md:gap-5">
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-white/60">
+            <a href="#player" className="hover:text-gold transition-colors">Player</a>
+            <a href="#playlist" className="hover:text-gold transition-colors">Playlist</a>
+            <a
+              href="https://music.youtube.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-truck-red hover:text-highway-orange transition-colors"
+            >
+              <Music2 className="w-4 h-4" />
+              YouTube Music
+            </a>
+          </nav>
 
+          {/* Mobile Remote Trigger Button */}
+          <button
+            onClick={onOpenRemoteModal}
+            className={`flex items-center gap-2 px-3 py-1.5 md:px-3.5 md:py-2 rounded-xl text-xs md:text-sm font-semibold transition-all shadow-md active:scale-95 ${
+              connectedCount > 0
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30'
+                : 'bg-gradient-to-r from-truck-red to-highway-orange hover:brightness-110 text-white shadow-glow-red'
+            }`}
+            title="Control playback from mobile phone"
+          >
+            <Smartphone className="w-4 h-4" />
+            <span>Mobile Remote</span>
+            {connectedCount > 0 ? (
+              <span className="flex items-center gap-1 bg-emerald-500 text-black text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
+                {connectedCount}
+              </span>
+            ) : (
+              <span className="hidden sm:inline-block text-[10px] font-normal opacity-80 bg-black/20 px-1.5 py-0.5 rounded">
+                Pair
+              </span>
+            )}
+          </button>
+        </div>
 
       </div>
-
-      {/* Decorative bottom line */}
-      <div className="" />
     </header>
   );
 };

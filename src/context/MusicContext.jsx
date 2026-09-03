@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useReducer, useRef, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useRef, useEffect, useCallback, useMemo } from 'react';
 import { SONGS, getThumbnail } from '../data/songs';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useRemoteControl } from '../hooks/useRemoteControl';
 
 // ── Initial State ────────────────────────────────────────────────────────────
 const initialState = {
@@ -289,12 +290,102 @@ export const MusicProvider = ({ children }) => {
 
 
 
+  // ── Remote Control Sync (Host Mode) ───────────────────────────────────────
+  const hostStateSnapshot = useMemo(() => ({
+    currentSong: state.currentSong,
+    isPlaying: state.isPlaying,
+    volume: state.volume,
+    progress: state.progress,
+    currentTime: state.currentTime,
+    duration: state.duration,
+    shuffle: state.shuffle,
+    repeat: state.repeat,
+    favorites,
+  }), [
+    state.currentSong,
+    state.isPlaying,
+    state.volume,
+    state.progress,
+    state.currentTime,
+    state.duration,
+    state.shuffle,
+    state.repeat,
+    favorites,
+  ]);
+
+  const handleRemoteCommand = useCallback((cmd) => {
+    if (!cmd || !cmd.type) return;
+
+    switch (cmd.type) {
+      case 'CMD_TOGGLE_PLAY':
+        togglePlay();
+        break;
+      case 'CMD_PLAY':
+        if (!state.isPlaying) togglePlay();
+        break;
+      case 'CMD_PAUSE':
+        if (state.isPlaying) togglePlay();
+        break;
+      case 'CMD_NEXT':
+        playNextRef.current?.();
+        break;
+      case 'CMD_PREV':
+        playPrevRef.current?.();
+        break;
+      case 'CMD_SEEK':
+        if (typeof cmd.percent === 'number') {
+          seek(cmd.percent);
+        }
+        break;
+      case 'CMD_SET_VOLUME':
+        if (typeof cmd.volume === 'number') {
+          setVolume(cmd.volume);
+        }
+        break;
+      case 'CMD_SELECT_SONG': {
+        const found = SONGS.find(s => s.id === cmd.songId);
+        if (found) playSong(found);
+        break;
+      }
+      case 'CMD_TOGGLE_SHUFFLE':
+        dispatch({ type: 'TOGGLE_SHUFFLE' });
+        break;
+      case 'CMD_TOGGLE_REPEAT':
+        dispatch({ type: 'TOGGLE_REPEAT' });
+        break;
+      case 'CMD_TOGGLE_FAVORITE': {
+        const target = SONGS.find(s => s.id === cmd.songId);
+        if (target) toggleFavorite(target);
+        break;
+      }
+      default:
+        break;
+    }
+  }, [togglePlay, state.isPlaying, seek, setVolume, playSong, toggleFavorite]);
+
+  const hostRemote = useRemoteControl({
+    isHost: true,
+    onCommandReceived: handleRemoteCommand,
+    currentState: hostStateSnapshot,
+  });
+
+  // Automatically start host peer listener on mount
+  useEffect(() => {
+    hostRemote.initHost();
+  }, []);
+
+  // Broadcast state updates to all connected phones
+  useEffect(() => {
+    hostRemote.broadcastState(hostStateSnapshot);
+  }, [hostStateSnapshot, hostRemote.broadcastState]);
+
   const value = {
     ...state,
     playerRef,
     favorites,
     recentlyPlayed,
     filteredPlaylist: getFilteredPlaylist(),
+    remoteControl: hostRemote,
     playSong,
     playNext,
     playPrev,
