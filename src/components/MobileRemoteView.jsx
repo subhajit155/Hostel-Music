@@ -19,7 +19,6 @@ import {
   Wifi,
   WifiOff,
   Radio,
-  Sliders,
   Sparkles,
   Gauge,
   Moon,
@@ -33,6 +32,8 @@ import {
   ArrowUp,
   Video,
   Layers,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import { SONGS, CATEGORIES, getThumbnail } from '../data/songs';
 import { formatTime } from '../utils/formatTime';
@@ -198,6 +199,12 @@ const MobileRemoteView = ({
     showToast(next ? 'Party Disco Lights ON! 🪩' : 'Party Lights Off');
   };
 
+  const handleToggleFullscreen = () => {
+    const next = !remoteState?.isFullscreen;
+    sendCommand({ type: 'CMD_TOGGLE_FULLSCREEN' });
+    showToast(next ? 'Full Screen Enabled 🖥️' : 'Exited Full Screen 💻');
+  };
+
   const handleSendReaction = (emoji) => {
     sendCommand({ type: 'CMD_SEND_REACTION', emoji });
     showToast(`Sent ${emoji} to laptop screen!`);
@@ -301,6 +308,7 @@ const MobileRemoteView = ({
   const sleepTimerSecondsLeft = remoteState?.sleepTimerSecondsLeft || null;
   const cinemaMode = remoteState?.cinemaMode || false;
   const partyMode = remoteState?.partyMode || false;
+  const isFullscreen = remoteState?.isFullscreen || false;
   const laptopSelectedCategory = remoteState?.selectedCategory || 'all';
 
   // ── Connection Screen (if disconnected or pin not entered) ───────────────────
@@ -650,35 +658,50 @@ const MobileRemoteView = ({
         {/* ── TAB 2: LAPTOP SCREEN & PARTY DECK ─────────────────────────────── */}
         {activeTab === 'screen' && (
           <div className="space-y-4 animate-fadeIn">
-            {/* Visual Mode Toggles */}
-            <div className="grid grid-cols-2 gap-2.5">
+            {/* Visual & Screen Mode Toggles */}
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={handleToggleFullscreen}
+                className={`p-3 rounded-2xl border flex flex-col items-center text-center gap-1.5 transition-all active:scale-95 ${
+                  isFullscreen
+                    ? 'bg-gradient-to-tr from-gold/30 to-highway-orange/20 border-gold text-gold shadow-[0_0_15px_rgba(255,179,0,0.3)]'
+                    : 'bg-charcoal-card border-white/10 text-white/70 hover:bg-white/5'
+                }`}
+              >
+                {isFullscreen ? <Minimize2 className="w-5 h-5 text-gold" /> : <Maximize2 className="w-5 h-5" />}
+                <span className="text-[11px] font-bold truncate">Full Screen</span>
+                <span className="text-[9px] opacity-75">
+                  {isFullscreen ? 'ON' : 'OFF'}
+                </span>
+              </button>
+
               <button
                 onClick={handleTogglePartyMode}
-                className={`p-3.5 rounded-2xl border flex flex-col items-center text-center gap-1.5 transition-all active:scale-95 ${
+                className={`p-3 rounded-2xl border flex flex-col items-center text-center gap-1.5 transition-all active:scale-95 ${
                   partyMode
                     ? 'bg-gradient-to-tr from-truck-red via-highway-orange to-gold border-gold text-white shadow-glow-red'
                     : 'bg-charcoal-card border-white/10 text-white/70 hover:bg-white/5'
                 }`}
               >
                 <PartyPopper className="w-5 h-5" />
-                <span className="text-xs font-bold">Party Disco Lights</span>
-                <span className="text-[10px] opacity-70">
-                  {partyMode ? 'ON (Pulsing RGB)' : 'OFF'}
+                <span className="text-[11px] font-bold truncate">Disco Lights</span>
+                <span className="text-[9px] opacity-75">
+                  {partyMode ? 'ON' : 'OFF'}
                 </span>
               </button>
 
               <button
                 onClick={handleToggleCinemaMode}
-                className={`p-3.5 rounded-2xl border flex flex-col items-center text-center gap-1.5 transition-all active:scale-95 ${
+                className={`p-3 rounded-2xl border flex flex-col items-center text-center gap-1.5 transition-all active:scale-95 ${
                   cinemaMode
                     ? 'bg-gradient-to-tr from-purple-900 to-indigo-900 border-purple-500 text-white shadow-lg'
                     : 'bg-charcoal-card border-white/10 text-white/70 hover:bg-white/5'
                 }`}
               >
                 <Tv className="w-5 h-5" />
-                <span className="text-xs font-bold">Cinema Spotlight</span>
-                <span className="text-[10px] opacity-70">
-                  {cinemaMode ? 'ON (Dimmed)' : 'OFF'}
+                <span className="text-[11px] font-bold truncate">Cinema Mode</span>
+                <span className="text-[9px] opacity-75">
+                  {cinemaMode ? 'ON' : 'OFF'}
                 </span>
               </button>
             </div>

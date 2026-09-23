@@ -5,7 +5,7 @@ import { getThumbnail } from '../data/songs';
 import PlayerControls from './PlayerControls';
 import ProgressBar from './ProgressBar';
 import VolumeControl from './VolumeControl';
-import { AlertCircle, SkipForward } from 'lucide-react';
+import { AlertCircle, SkipForward, Maximize2, Minimize2 } from 'lucide-react';
 
 const HeroPlayer = () => {
   const {
@@ -15,6 +15,8 @@ const HeroPlayer = () => {
     onPlayerStateChange,
     playNext,
     volume,
+    isFullscreen,
+    toggleFullscreen,
   } = useMusicContext();
 
   const [playerError, setPlayerError] = useState(false);
@@ -96,23 +98,45 @@ const HeroPlayer = () => {
     <section
       id="player"
       aria-label="Music Player"
-      className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden bg-player-gradient border border-white/10 shadow-truck"
+      className={`relative w-full mx-auto rounded-3xl overflow-hidden bg-player-gradient border border-white/10 shadow-truck transition-all duration-500 ${
+        isFullscreen ? 'max-w-xl md:max-w-2xl' : 'max-w-lg'
+      }`}
     >
       {/* Decorative glow rings */}
-      <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-truck-red/10 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-highway-orange/5 blur-3xl pointer-events-none" />
+      <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-truck-red/15 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-highway-orange/10 blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 p-6 md:p-8 space-y-5">
+      <div className="relative z-10 p-5 sm:p-6 md:p-8 space-y-5">
 
-        {/* Tagline */}
-        <div className="text-center">
-          <p className="font-hindi text-sm md:text-base text-gold/80 tracking-wide leading-relaxed">
-            Room No - 211
-          </p>
+        {/* Top Header Row with Tagline & Fullscreen button */}
+        <div className="flex items-center justify-between text-xs sm:text-sm">
+          <div className="flex items-center gap-1.5 text-white/50">
+            <span className="w-2 h-2 rounded-full bg-truck-red animate-pulse" />
+            <span className="font-medium uppercase tracking-wider text-[11px] text-white/60">Hostel Beat</span>
+          </div>
+
+          <div className="text-center">
+            <p className="font-hindi text-sm md:text-base text-gold/90 font-medium tracking-wide leading-none">
+              Room No - 211
+            </p>
+          </div>
+
+          <button
+            onClick={toggleFullscreen}
+            className="p-1.5 sm:p-2 rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+            title={isFullscreen ? 'Exit Full Screen' : 'Full Screen Player'}
+            aria-label={isFullscreen ? 'Exit Full Screen' : 'Full Screen Player'}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4 text-gold" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
         </div>
 
         {/* Album Art */}
-        <div className="relative mx-auto w-52 h-52 md:w-64 md:h-64 rounded-2xl overflow-hidden shadow-truck group">
+        <div
+          className={`relative mx-auto rounded-2xl overflow-hidden shadow-truck group transition-all duration-500 ${
+            isFullscreen ? 'w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80' : 'w-52 h-52 sm:w-60 sm:h-60 md:w-64 md:h-64'
+          }`}
+        >
           {thumb && !imgError ? (
             <img
               src={thumb}

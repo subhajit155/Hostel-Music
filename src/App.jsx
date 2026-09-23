@@ -10,7 +10,7 @@ import Footer from './components/Footer';
 import RemotePairModal from './components/RemotePairModal';
 import MobileRemoteView from './components/MobileRemoteView';
 import { useRemoteControl } from './hooks/useRemoteControl';
-import { Sparkles, Radio, MessageSquare, Volume2, Moon } from 'lucide-react';
+import { Sparkles, Moon, ChevronDown, Maximize2 } from 'lucide-react';
 
 // ── Background decoration ────────────────────────────────────────────────────
 const BackgroundDecor = ({ partyMode, cinemaMode }) => (
@@ -100,6 +100,7 @@ const MainContent = ({ isRemoteClientMode, clientRemote, onExitRemote, onEnterRe
     remoteControl,
     partyMode,
     cinemaMode,
+    isFullscreen,
     liveReactions,
     djShoutout,
     sleepTimerSecondsLeft,
@@ -117,6 +118,10 @@ const MainContent = ({ isRemoteClientMode, clientRemote, onExitRemote, onEnterRe
     );
   }
 
+  const scrollToPlaylist = () => {
+    document.getElementById('playlist')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <>
       <BackgroundDecor partyMode={partyMode} cinemaMode={cinemaMode} />
@@ -126,9 +131,15 @@ const MainContent = ({ isRemoteClientMode, clientRemote, onExitRemote, onEnterRe
       <div className={`min-h-dvh flex flex-col transition-all duration-500 ${cinemaMode ? 'bg-black/85' : ''}`}>
         <Header onOpenRemoteModal={() => setIsPairModalOpen(true)} />
 
-        {/* Active Sleep Timer or Party Mode indicator badge */}
-        {(sleepTimerSecondsLeft || partyMode || cinemaMode) && (
-          <div className="bg-charcoal-card/90 border-b border-white/10 px-4 py-2 flex items-center justify-center gap-4 text-xs font-semibold text-white/80">
+        {/* Active Sleep Timer or Party Mode or Full Screen indicator badge */}
+        {(sleepTimerSecondsLeft || partyMode || cinemaMode || isFullscreen) && (
+          <div className="bg-charcoal-card/90 border-b border-white/10 px-4 py-2 flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-white/80">
+            {isFullscreen && (
+              <div className="flex items-center gap-1.5 text-gold animate-pulse-slow">
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>Full-Screen Mode Active (Press Esc to exit)</span>
+              </div>
+            )}
             {sleepTimerSecondsLeft && (
               <div className="flex items-center gap-1.5 text-gold">
                 <Moon className="w-3.5 h-3.5" />
@@ -149,10 +160,30 @@ const MainContent = ({ isRemoteClientMode, clientRemote, onExitRemote, onEnterRe
           </div>
         )}
 
-        <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8 pb-28 md:pb-12">
-          {/* ── Hero Player ─────────────────────────────────────── */}
-          <section id="player" className="flex justify-center mb-12 scroll-mt-20">
-            <HeroPlayer />
+        <main className={`flex-1 w-full max-w-7xl mx-auto px-4 transition-all duration-500 ${isFullscreen ? 'py-4' : 'py-8 pb-28 md:pb-12'}`}>
+          {/* ── Hero Player Section ──────────────────────────────── */}
+          <section
+            id="player"
+            className={`scroll-mt-16 transition-all duration-500 flex flex-col items-center justify-center ${
+              isFullscreen
+                ? 'min-h-[calc(100vh-140px)] my-2'
+                : 'mb-12'
+            }`}
+          >
+            <div className="w-full flex justify-center">
+              <HeroPlayer />
+            </div>
+
+            {/* Quick jump to playlist button when centered in full-screen */}
+            {isFullscreen && (
+              <button
+                onClick={scrollToPlaylist}
+                className="mt-6 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white/70 hover:text-white transition-all shadow-md group active:scale-95"
+              >
+                <span>View Playlist & Library</span>
+                <ChevronDown className="w-3.5 h-3.5 text-gold group-hover:translate-y-0.5 transition-transform" />
+              </button>
+            )}
           </section>
 
           {/* ── Playlist Section ─────────────────────────────────── */}

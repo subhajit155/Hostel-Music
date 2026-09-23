@@ -1,9 +1,9 @@
 import React from 'react';
-import { Music2, Smartphone, Radio } from 'lucide-react';
+import { Music2, Smartphone, Maximize2, Minimize2 } from 'lucide-react';
 import { useMusicContext } from '../context/MusicContext';
 
 const Header = ({ onOpenRemoteModal }) => {
-  const { remoteControl } = useMusicContext();
+  const { remoteControl, isFullscreen, toggleFullscreen } = useMusicContext();
   const connectedCount = remoteControl?.connectedDevicesCount || 0;
 
   return (
@@ -55,7 +55,7 @@ const Header = ({ onOpenRemoteModal }) => {
             title="Control playback from mobile phone"
           >
             <Smartphone className="w-4 h-4" />
-            <span>Mobile Remote</span>
+            <span className="hidden xs:inline">Mobile Remote</span>
             {connectedCount > 0 ? (
               <span className="flex items-center gap-1 bg-emerald-500 text-black text-[10px] font-bold px-1.5 py-0.2 rounded-full">
                 <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
@@ -65,6 +65,30 @@ const Header = ({ onOpenRemoteModal }) => {
               <span className="hidden sm:inline-block text-[10px] font-normal opacity-80 bg-black/20 px-1.5 py-0.5 rounded">
                 Pair
               </span>
+            )}
+          </button>
+
+          {/* Full Screen Toggle Button */}
+          <button
+            onClick={toggleFullscreen}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 md:px-3 md:py-2 rounded-xl text-xs md:text-sm font-medium transition-all active:scale-95 border ${
+              isFullscreen
+                ? 'bg-gold/20 text-gold border-gold/40 hover:bg-gold/30 shadow-[0_0_12px_rgba(255,179,0,0.3)]'
+                : 'bg-surface-2/80 text-white/80 border-white/10 hover:text-white hover:bg-surface-3 hover:border-white/20'
+            }`}
+            title={isFullscreen ? 'Exit Full Screen (Esc)' : 'Enter Full Screen'}
+            aria-label={isFullscreen ? 'Exit Full Screen' : 'Enter Full Screen'}
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize2 className="w-4 h-4 text-gold" />
+                <span className="hidden sm:inline">Exit Full</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Full Screen</span>
+              </>
             )}
           </button>
         </div>

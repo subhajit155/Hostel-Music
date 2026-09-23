@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useRef, useEffect, useCal
 import { SONGS, getThumbnail } from '../data/songs';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useRemoteControl } from '../hooks/useRemoteControl';
+import { useFullscreen } from '../hooks/useFullscreen';
 
 // ── Initial State ────────────────────────────────────────────────────────────
 const initialState = {
@@ -73,6 +74,14 @@ export const MusicProvider = ({ children }) => {
   const [sleepTimerSecondsLeft, setSleepTimerSecondsLeft] = useState(null);
   const [liveReactions, setLiveReactions] = useState([]);
   const [djShoutout, setDjShoutout] = useState(null);
+
+  const {
+    isFullscreen,
+    toggleFullscreen,
+    enterFullscreen,
+    exitFullscreen,
+    isSupported: isFullscreenSupported,
+  } = useFullscreen();
 
   // ── Background Audio Keep-Alive for Screen Off / Lock Screen ──────────────
   useEffect(() => {
@@ -380,6 +389,7 @@ export const MusicProvider = ({ children }) => {
     playbackRate,
     cinemaMode,
     partyMode,
+    isFullscreen,
     sleepTimerMinutes,
     sleepTimerSecondsLeft,
     queue,
@@ -399,6 +409,7 @@ export const MusicProvider = ({ children }) => {
     playbackRate,
     cinemaMode,
     partyMode,
+    isFullscreen,
     sleepTimerMinutes,
     sleepTimerSecondsLeft,
     queue,
@@ -481,6 +492,15 @@ export const MusicProvider = ({ children }) => {
       case 'CMD_SET_PARTY_MODE':
         setPartyMode(typeof cmd.value === 'boolean' ? cmd.value : prev => !prev);
         break;
+      case 'CMD_TOGGLE_FULLSCREEN':
+        toggleFullscreen();
+        break;
+      case 'CMD_ENTER_FULLSCREEN':
+        enterFullscreen();
+        break;
+      case 'CMD_EXIT_FULLSCREEN':
+        exitFullscreen();
+        break;
       case 'CMD_SET_SLEEP_TIMER':
         handleSetSleepTimer(cmd.minutes);
         break;
@@ -541,6 +561,9 @@ export const MusicProvider = ({ children }) => {
     triggerReaction,
     triggerShoutout,
     toggleFavorite,
+    toggleFullscreen,
+    enterFullscreen,
+    exitFullscreen,
   ]);
 
   const hostRemote = useRemoteControl({
@@ -568,6 +591,8 @@ export const MusicProvider = ({ children }) => {
     playbackRate,
     cinemaMode,
     partyMode,
+    isFullscreen,
+    isFullscreenSupported,
     sleepTimerMinutes,
     sleepTimerSecondsLeft,
     liveReactions,
@@ -583,6 +608,9 @@ export const MusicProvider = ({ children }) => {
     setPlaybackRate: changePlaybackRate,
     setCinemaMode,
     setPartyMode,
+    toggleFullscreen,
+    enterFullscreen,
+    exitFullscreen,
     setSleepTimer: handleSetSleepTimer,
     triggerReaction,
     triggerShoutout,
